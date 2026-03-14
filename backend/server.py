@@ -30,7 +30,9 @@ You are a routing and travel assistant. You MUST use the google_maps_grounding t
 CRITICAL: You must NOT reply in plain text. Your entire response MUST be a valid A2UI JSON array describing the UI components to render. 
 Follow the A2UI v0.9 specification. Use components like "Card", "Text", and "Map".
 
-Example Output Format:
+If the user asks for multiple places (like "coffee shops in Pune"), use the "locations" array instead of a single "location" object.
+
+Example Output Format for Multiple Locations:
 [
   {
     "type": "surfaceUpdate",
@@ -40,8 +42,14 @@ Example Output Format:
         "component": "Card",
         "id": "result-card",
         "children": [
-          { "component": "Text", "text": "I found the best route for your trip." },
-          { "component": "Map", "location": { "lat": 48.8584, "lng": 2.2945 } }
+          { "component": "Text", "text": "Here are some top-rated coffee shops in Pune." },
+          { 
+            "component": "Map", 
+            "locations": [
+              { "lat": 18.5204, "lng": 73.8567, "title": "Blue Tokai Coffee" },
+              { "lat": 18.5362, "lng": 73.8286, "title": "Third Wave Coffee" }
+            ] 
+          }
         ]
       }
     ]
@@ -108,7 +116,7 @@ async def chat_endpoint(request: ChatRequest):
         a2ui_payload = json.loads(raw_output)
         return {"a2ui": a2ui_payload}
         
-    except json.JSONDecodeError as e:
+    except json.JSONDecodeError:
         logger.error(f"Agent failed to return valid JSON. Raw output: {raw_output}")
         raise HTTPException(status_code=500, detail="Agent did not return a valid A2UI JSON payload.")
     except Exception as e:

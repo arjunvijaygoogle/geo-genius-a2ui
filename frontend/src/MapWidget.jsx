@@ -1,29 +1,67 @@
-import { APIProvider, Map, AdvancedMarker, Pin } from '@vis.gl/react-google-maps';
+import React, { useEffect } from 'react';
+import { APIProvider, Map, AdvancedMarker, Pin, useMap } from '@vis.gl/react-google-maps';
 
-export default function MapWidget({ location }) {
-  // Fallback to San Francisco if the agent forgets to provide coordinates
-  const defaultCenter = { lat: 37.7749, lng: -122.4194 };
-  
-  // Extract lat/lng from the agent's A2UI props
-  const center = location && location.lat && location.lng 
-    ? { lat: parseFloat(location.lat), lng: parseFloat(location.lng) }
-    : defaultCenter;
-  const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-  console.log(apiKey);
+// Helper component to automatically zoom and center the map to fit all markers
+const AutoBounds = ({ markers }) => {
+  const map = useMap();
+
+  useEffect(() => {
+    if (!map || !markers || markers.length === 0) return;
+
+    // Create a new bounds object
+    const bounds = new window.google.maps.LatLngBounds();
+    
+    // Extend the bounds to include every marker's coordinates
+    markers.forEach(marker => {
+      if (marker.lat && marker.lng) {
+        bounds.extend({ lat: parseFloat(marker.lat), lng: parseFloat(marker.lng) });
+      }
+    });
+
+    // Tell the map to fit exactly to these bounds
+    map.fitBounds(bounds);
+    
+    // Optional: Add a little padding so markers aren't right on the edge
+    map.panToBounds(bounds, 50); 
+  }, [map, markers]);
+
+  return null;
+};
+
+export default function MapWidget({ location, locations }) {
+  // Normalize the data: if the agent sends 'locations' (array), use it. 
+  // If it sends the old 'location' (single object), wrap it in an array.
+  const markers = locations || (location ? [location] : []);
+
+  // Default to Pune center if absolutely no data is provided
+  const defaultCenter = { lat: 18.5204, lng: 73.8567 };
+
   return (
-    <div style={{ height: '350px', width: '100%', borderRadius: '8px', overflow: 'hidden', marginTop: '1rem' }}>
-      {/* Replace 'YOUR_API_KEY' with a real Google Maps JS API key from Google Cloud Console */}
-      <APIProvider apiKey={apiKey}>
+    <div style={{ height: '400px', width: '100%', borderRadius: '8px', overflow: 'hidden', marginTop: '1rem' }}>
+      <APIProvider apiKey="">
         <Map 
-          defaultZoom={14} 
-          defaultCenter={center} 
-          mapId="A2UI_DEMO_MAP" // Required to use AdvancedMarker
+          defaultZoom={12} 
+          defaultCenter={defaultCenter} 
+          mapId="A2UI_DEMO_MAP" 
           gestureHandling="greedy"
           disableDefaultUI={true}
         >
-          <AdvancedMarker position={center}>
-            <Pin background="#4285F4" borderColor="#1e40af" glyphColor="#ffffff" />
-          </AdvancedMarker>
+          {/* Loop through the array and render an AdvancedMarker for each one */}
+          {markers.map((marker, index) => {
+            const position = { 
+              lat: parseFloat(marker.lat), 
+              lng: parseFloat(marker.lng) 
+            };
+
+            return (
+              <AdvancedMarker key={index} position={position} title={marker.title || "Location"}>
+                <Pin background="#4285F4" borderColor="#1e40af" glyphColor="#ffffff" />
+              </AdvancedMarker>
+            );
+          })}
+
+          {/* Mount our AutoBounds helper to adjust the camera */}
+          <AutoBounds markers={markers} />
         </Map>
       </APIProvider>
     </div>

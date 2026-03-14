@@ -70,7 +70,7 @@ export default function App() {
     setA2uiMessages([]);
 
     try {
-      const response = await axios.post('https://a2ui-backend-455538062800.us-central1.run.app/chat', {
+      const response = await axios.post('http://localhost:8000/chat', {
         prompt: query
       });
       
