@@ -38,7 +38,7 @@ export default function MapWidget({ location, locations }) {
 
   return (
     <div style={{ height: '400px', width: '100%', borderRadius: '8px', overflow: 'hidden', marginTop: '1rem' }}>
-      <APIProvider apiKey="">
+      <APIProvider apiKey="AIzaSyDS-Uhb30IBHw9YdG_SqK_RvD6X3grBSoQ">
         <Map 
           defaultZoom={12} 
           defaultCenter={defaultCenter} 
