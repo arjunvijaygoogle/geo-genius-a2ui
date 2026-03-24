@@ -1,0 +1,38 @@
+name: Deploy Backend to Cloud Run
+
+on:
+  push:
+    branches:
+      - main
+    # Optional: Only trigger if files in the backend directory change
+    paths:
+      - 'backend/**'
+      - '.github/workflows/deploy-backend.yml'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          # Assumes you have saved your Service Account JSON key as a GitHub Secret.
+          # Alternatively, you can configure Workload Identity Federation.
+          credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Deploy to Cloud Run
+        # Important: Run the command from the backend directory so '--source .' targets the right code
+        working-directory: ./backend
+        run: |
+          gcloud run deploy a2ui-backend \
+            --source . \
+            --region us-central1 \
+            --allow-unauthenticated \
+            --set-env-vars="GOOGLE_GENAI_USE_VERTEXAI=TRUE,GOOGLE_CLOUD_PROJECT=ui-develop-482209,GOOGLE_CLOUD_LOCATION=us-central1"
