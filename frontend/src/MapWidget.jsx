@@ -1,71 +1,60 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { APIProvider, Map, AdvancedMarker, Pin, useMap } from '@vis.gl/react-google-maps';
 
-// Helper component to automatically zoom and center the map to fit all markers
 const AutoBounds = ({ markers }) => {
   const map = useMap();
-
   useEffect(() => {
     if (!map || !markers || markers.length === 0) return;
-
     const bounds = new window.google.maps.LatLngBounds();
-    
-    markers.forEach(marker => {
-      if (marker.lat && marker.lng) {
-        bounds.extend({ lat: parseFloat(marker.lat), lng: parseFloat(marker.lng) });
-      }
+    markers.forEach(m => {
+      if (m.lat && m.lng) bounds.extend({ lat: parseFloat(m.lat), lng: parseFloat(m.lng) });
     });
-
     map.fitBounds(bounds);
-    map.panToBounds(bounds, 50); 
+    map.panToBounds(bounds, 80); 
   }, [map, markers]);
-
   return null;
 };
 
 export default function MapWidget({ location, locations }) {
   const markers = locations || (location ? [location] : []);
-  const defaultCenter = { lat: 18.5204, lng: 73.8567 };
+  const defaultCenter = { lat: 19.0760, lng: 72.8777 }; // Mumbai default
 
   return (
-    <div className="map-container" style={{ 
-      height: '450px', 
+    <div className="map-view" style={{ 
+      height: '500px', 
       width: '100%', 
-      borderRadius: '20px', 
-      overflow: 'hidden', 
-      marginTop: '1.5rem',
-      boxShadow: '0 20px 40px -10px rgba(0,0,0,0.1), 0 0 0 1px rgba(0,0,0,0.05)',
-      background: '#f8fafc'
+      background: '#f1f5f9'
     }}>
-      {/* Note: It's best practice to use import.meta.env.VITE_GOOGLE_MAPS_API_KEY in production! */}
-      <APIProvider apiKey="">
+      <APIProvider apiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY}>
         <Map 
-          defaultZoom={12} 
+          defaultZoom={11} 
           defaultCenter={defaultCenter} 
-          mapId="A2UI_DEMO_MAP" 
+          mapId="DASHBOARD_MAP" 
           gestureHandling="greedy"
           disableDefaultUI={true}
+          styles={mapCustomStyles}
         >
-          {markers.map((marker, index) => {
-            const position = { 
-              lat: parseFloat(marker.lat), 
-              lng: parseFloat(marker.lng) 
-            };
-
-            return (
-              <AdvancedMarker key={index} position={position} title={marker.title || "Location"}>
-                <Pin 
-                  background="#4F46E5" /* Modern Indigo */
-                  borderColor="#312E81" 
-                  glyphColor="#ffffff" 
-                  scale={1.2}
-                />
-              </AdvancedMarker>
-            );
-          })}
+          {markers.map((marker, index) => (
+            <AdvancedMarker 
+              key={index} 
+              position={{ lat: parseFloat(marker.lat), lng: parseFloat(marker.lng) }}
+            >
+              <Pin 
+                background={index === 0 ? "#F97316" : "#4F46E5"} 
+                borderColor="#ffffff" 
+                glyphColor="#ffffff" 
+                scale={1.1}
+              />
+            </AdvancedMarker>
+          ))}
           <AutoBounds markers={markers} />
         </Map>
       </APIProvider>
     </div>
   );
 }
+
+const mapCustomStyles = [
+  { "featureType": "poi", "elementType": "labels", "stylers": [{ "visibility": "off" }] },
+  { "featureType": "transit", "elementType": "labels.icon", "stylers": [{ "visibility": "off" }] }
+];
