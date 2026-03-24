@@ -83,7 +83,7 @@ export default function App() {
     // Add user message to history
     setChatHistory(prev => [...prev, { role: 'user', content: userPrompt }]);
     setIsLoading(true);
-    console.log(import.meta.env.VITE_AGENT_BACKEND_CHAT_API_URL);
+    console.log('URL',import.meta.env.VITE_AGENT_BACKEND_CHAT_API_URL);
     try {
       // NOTE: Replace localhost with your Cloud Run URL if deployed
       const response = await axios.post(import.meta.env.VITE_AGENT_BACKEND_CHAT_API_URL, { prompt: userPrompt });
