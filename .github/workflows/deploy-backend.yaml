@@ -1,13 +1,11 @@
-name: Deploy Backend to Cloud Run
+name: Deploy Backend
 
 on:
   push:
+    branches: [main]
+  pull_request:
     branches:
       - main
-    # Optional: Only trigger if files in the backend directory change
-    paths:
-      - 'backend/**'
-      - '.github/workflows/deploy-backend.yml'
 
 jobs:
   deploy:
