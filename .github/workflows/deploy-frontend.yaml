@@ -29,6 +29,11 @@ jobs:
         # Important: Run the command from the frontend directory
         working-directory: ./frontend
         run: |
+          # Create .env.production file so Vite picks up the secrets during Docker build
+          # We use .env.production because standard .env is ignored in your .gitignore
+          echo "VITE_GOOGLE_MAPS_API_KEY=${{ secrets.GOOGLE_MAPS_API_KEY }}" > .env.production
+          echo "VITE_AGENT_BACKEND_CHAT_API_URL=${{ secrets.VITE_AGENT_BACKEND_CHAT_API_URL }}" >> .env.production
+          
           gcloud run deploy a2ui-frontend \
             --source . \
             --region us-central1 \
