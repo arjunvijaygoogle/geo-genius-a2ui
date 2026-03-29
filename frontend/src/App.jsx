@@ -43,7 +43,7 @@ export default function App() {
 
     try {
       // 2. Call your local backend
-      const response = await axios.post('http://localhost:8000/chat', { 
+      const response = await axios.post(import.meta.env.VITE_AGENT_BACKEND_CHAT_API_URL, { 
         prompt: userPrompt 
       });
 
