@@ -36,54 +36,43 @@ export default function App() {
     const userPrompt = query.trim();
     setQuery('');
     
-    // 1. Setup metadata for history
     const uniqueSurfaceId = `surface-${Date.now()}`;
     setChatHistory(prev => [...prev, { role: 'user', content: userPrompt }]);
     setIsLoading(true);
 
     try {
-      // 2. Call your local backend
       const response = await axios.post(import.meta.env.VITE_AGENT_BACKEND_CHAT_API_URL, { 
         prompt: userPrompt 
       });
 
-      // 3. Extract the a2ui array from response
       const rawA2uiData = response.data.a2ui;
 
-      // 4. PERSISTENCE TRICK:
-      // Your backend returns "@default". To prevent overwriting old messages,
-      // we map over the response and replace "@default" with our uniqueSurfaceId.
       const sanitizedData = rawA2uiData.map(msg => {
-        // Rewrite surfaceId for persistence
         if (msg.beginRendering) {
-          msg.beginRendering.surfaceId = uniqueSurfaceId;
+          return { ...msg, beginRendering: { ...msg.beginRendering, surfaceId: uniqueSurfaceId } };
         }
         
         if (msg.surfaceUpdate) {
-          msg.surfaceUpdate.surfaceId = uniqueSurfaceId;
-          
-          // Strictly enforce protocol for Text components
-          msg.surfaceUpdate.components = msg.surfaceUpdate.components.map(comp => {
+          const updatedComponents = msg.surfaceUpdate.components.map(comp => {
             if (comp.component && comp.component.Text) {
               const currentText = comp.component.Text.text;
-              
-              // Force string into {"literalString": "..."} object
               if (typeof currentText === 'string') {
-                comp.component.Text.text = { literalString: currentText };
-              } 
-              else if (!currentText) {
-                comp.component.Text.text = { literalString: "" };
+                return {
+                  ...comp,
+                  component: {
+                    ...comp.component,
+                    Text: { ...comp.component.Text, text: { literalString: currentText } }
+                  }
+                };
               }
             }
             return comp;
           });
+          return { ...msg, surfaceUpdate: { ...msg.surfaceUpdate, surfaceId: uniqueSurfaceId, components: updatedComponents } };
         }
         return msg;
       });
 
-      console.log(sanitizedData)
-
-      // 5. Add to chat history and process
       setChatHistory(prev => [...prev, { role: 'ai', surfaceId: uniqueSurfaceId }]);
       processor.processMessages(sanitizedData);
 
@@ -171,8 +160,17 @@ export default function App() {
               </div>
             </div>
 
-            <div className="input-container">
-              <form className="input-box" onSubmit={handleSubmit}>
+            {/* --- Input Area --- */}
+            <div className="input-container" style={{
+              display: 'flex',
+              flexDirection: 'column', // This forces items to stack vertically
+              alignItems: 'center',    // Centers the disclaimer horizontally
+              width: '100%',
+              padding: '10px 0 20px 0'
+            }}>
+              
+              {/* The Prompt Bar (Form) */}
+              <form className="input-box" onSubmit={handleSubmit} style={{ width: '100%' }}>
                 <textarea
                   className="chat-input"
                   value={query}
@@ -190,6 +188,27 @@ export default function App() {
                   <Send size={20} />
                 </button>
               </form>
+              
+              {/* --- Gemini-like Disclaimer Below the Prompt Bar --- */}
+              <div className="disclaimer-text" style={{ 
+                fontSize: '12px', 
+                color: '#707070', 
+                textAlign: 'center', 
+                marginTop: '10px',  // Spacing between bar and text
+                width: '100%',
+                maxWidth: '560px',  // Match the width of your input box
+                lineHeight: '1.4'
+              }}>
+                Your Google chats aren't used to improve our models. Gemini is AI and can make mistakes. 
+                <span style={{ 
+                  textDecoration: 'underline', 
+                  cursor: 'pointer', 
+                  marginLeft: '4px',
+                  color: '#555' 
+                }}>
+                  Your privacy and Gemini
+                </span>
+              </div>
             </div>
           </main>
         </div>
