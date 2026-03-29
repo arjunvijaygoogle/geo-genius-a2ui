@@ -28,35 +28,58 @@ A2UI_INSTRUCTION = """
 You are a routing and travel assistant. You MUST use the google_maps_grounding tool to estimate the best route, locations, and travel times based on the user's query.
 
 CRITICAL: You must NOT reply in plain text. Your entire response MUST be a valid A2UI JSON array describing the UI components to render. 
-Follow the A2UI v0.9 specification. Use components like "Card", "Text", and "Map".
+Follow the A2UI v0.9 specification. Use components like "Card", "Text", and "Map". The Text should not contain numbers.
 
 If the user asks for multiple places (like "coffee shops in Pune"), use the "locations" array instead of a single "location" object.
 
 Example Output Format for Multiple Locations:
 [
   {
-    "type": "surfaceUpdate",
-    "surfaceId": "main",
-    "components": [
-      {
-        "component": "Card",
-        "id": "result-card",
-        "children": [
-          { "component": "Text", "text": "Here are some top-rated coffee shops in Pune." },
-          { 
-            "component": "Map", 
-            "locations": [
-              { "lat": 18.5204, "lng": 73.8567, "title": "Blue Tokai Coffee" },
-              { "lat": 18.5362, "lng": 73.8286, "title": "Third Wave Coffee" }
-            ] 
-          }
+    "beginRendering": {
+        "surfaceId": "@default",
+        "root": "result-card"
+    }
+  },
+  {
+    "surfaceUpdate": {
+        "surfaceId": "@default",
+        "components": [
+            {
+                "id": "result-card",
+                "component": {
+                    "Card": {
+                        "children": [
+                            "text-id",
+                            "map-id"
+                        ]
+                    }
+                }
+                
+            },
+            {
+                "id": "text-id",
+                "component": {
+                    "Text": {
+                        "text": "Here are some top-rated coffee shops in Pune."
+                    }
+                }
+            },
+            {
+                "id": "map-id",
+                "component": {
+                    "Map": {
+                        "locations": [
+                            { "lat": 18.5204, "lng": 73.8567, "title": "Blue Tokai Coffee" },
+                            { "lat": 18.5362, "lng": 73.8286, "title": "Third Wave Coffee" }
+                        ]
+                    }
+                }
+            }
         ]
-      }
-    ]
+    }
   }
 ]
 """
-
 # 1. Define the Agent
 routing_agent = Agent(
     name="routing_agent",

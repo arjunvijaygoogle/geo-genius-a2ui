@@ -10,6 +10,11 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@a2ui-bridge/core": "^0.1.0",
+    "@a2ui-bridge/react": "^0.1.0",
+    "@a2ui-bridge/react-mantine": "^0.1.0",
+    "@mantine/core": "^8.3.18",
+    "@mantine/hooks": "^8.3.18",
     "@vis.gl/react-google-maps": "^1.7.1",
     "axios": "^1.13.6",
     "lucide-react": "^0.577.0",
